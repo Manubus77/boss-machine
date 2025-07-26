@@ -1,5 +1,5 @@
 const express = require("express");
-const apiRouter = express.Router();
+const minionsRouter = express.Router();
 
 const {
   getAllFromDatabase,
@@ -7,4 +7,16 @@ const {
   addToDatabase,
   updateInstanceInDatabase,
   deleteFromDatabasebyId,
-} = require("../db");
+} = require("./db");
+
+// GET all minions
+
+minionsRouter.get("/", (req, res, next) => {
+  const allMinions = getAllFromDatabase("minions");
+  res.status(200).send(allMinions);
+});
+
+// GET a single minion by id
+minionsRouter.get("/minionId", (req, res, next) => {});
+
+module.exports = minionsRouter;

@@ -3,8 +3,6 @@ const app = express();
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
-module.exports = app;
-
 /* Do not change the following line! It is required for testing and allowing
  *  the frontend application to interact as planned with the api server
  */
@@ -15,6 +13,11 @@ app.use(cors());
 
 // Add middware for parsing request bodies here:
 app.use(bodyParser.json());
+
+// Test API
+app.get("/api/test", (req, res) => {
+  res.send("API is working!");
+});
 
 // Mount your existing apiRouter below at the '/api' path.
 const apiRouter = require("./server/api");
@@ -27,3 +30,5 @@ if (!module.parent) {
     console.log(`Server is listening on port ${PORT}`);
   });
 }
+
+module.exports = app;
