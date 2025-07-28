@@ -7,6 +7,7 @@ const {
   addToDatabase,
   updateInstanceInDatabase,
   deleteFromDatabasebyId,
+  isValidMinion,
 } = require("./db");
 
 // Validating Minion ID and saving it to the mininonId param of the req object
@@ -29,6 +30,39 @@ minionsRouter.get("/", (req, res, next) => {
 // GET a single minion by id
 minionsRouter.get("/:minionId", (req, res, next) => {
   res.status(200).send(req.minion);
+});
+
+//Middleware for checking if the req body of for PUT/POST verbs are valid
+const minionValidation = (req, res, next) => {
+  try {
+    isValidMinion(req.body);
+    next();
+  } catch (err) {
+    res.status(400).send({ error: err.message });
+  }
+};
+
+// POST a new minion
+minionsRouter.post("/", minionValidation, (req, res, next) => {
+  const newMinion = addToDatabase("minions", req.body);
+  res.status(201).send(newMinion);
+});
+
+// PUT a minion by ID
+minionsRouter.put("/:minionId", minionValidation, (req, res, next) => {
+  req.body.id = req.params.minionId;
+  const updatedMinion = updateInstanceInDatabase("minions", req.body);
+  res.status(200).send(updatedMinion);
+});
+
+// DELETE a minion by ID
+minionsRouter.delete("/:minionId", (req, res, next) => {
+  const deleted = deleteFromDatabasebyId("minions", req.params.minionId);
+  if (deleted) {
+    res.status(204).send({ message: "Minion was deleted." });
+  } else {
+    res.status(404).send({ error: "Minion not found" });
+  }
 });
 
 module.exports = minionsRouter;
