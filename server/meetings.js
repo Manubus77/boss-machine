@@ -7,6 +7,7 @@ const {
   addToDatabase,
   updateInstanceInDatabase,
   deleteFromDatabasebyId,
+  deleteAllFromDatabase,
   createMeeting,
 } = require("./db");
 
