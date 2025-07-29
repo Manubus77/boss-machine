@@ -68,3 +68,5 @@ ideasRouter.delete("/:ideaId", (req, res, next) => {
     res.status(404).send({ error: "Idea not found" });
   }
 });
+
+module.exports = ideasRouter;
