@@ -8,6 +8,8 @@ const {
   updateInstanceInDatabase,
   deleteFromDatabasebyId,
   isValidMinion,
+  createWork,
+  isValidWork,
 } = require("./db");
 
 // Validating Minion ID and saving it to the mininonId param of the req object
@@ -67,6 +69,30 @@ minionsRouter.delete("/:minionId", (req, res, next) => {
   } else {
     res.status(404).send({ error: "Minion not found" });
   }
+});
+
+//ROUTES FOR HANDLING MINIONS BACKLOGS
+
+// GET all backlog from a minion by ID
+minionsRouter.get("/:minionId/work", (req, res, next) => {
+  const minionId = req.params.minionId;
+  const allWorkItems = getAllFromDatabase("work").filter(
+    (work) => work.minionId === minionId
+  );
+  res.status(200).send(allWorkItems);
+});
+
+// POST new work in backlog for a minion by ID
+minionsRouter.post("/:minionId/work", (req, res, next) => {
+  const minionId = req.params.minionId;
+  const newWork = { ...req.body, minionId };
+
+  if (!isValidWork(newWork)) {
+    return res.status(400).send({ message: "Invalid work" });
+  }
+
+  const addedWork = addToDatabase("work", newWork);
+  res.status(201).send(addedWork);
 });
 
 module.exports = minionsRouter;
