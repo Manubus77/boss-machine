@@ -1,5 +1,6 @@
 const express = require("express");
 const ideasRouter = express.Router();
+const checkMillionDollarIdea = require("./checkMillionDollarIdea");
 
 const {
   getAllFromDatabase,
@@ -43,21 +44,31 @@ const ideaValidation = (req, res, next) => {
 };
 
 //POST a new idea
-ideasRouter.post("/", ideaValidation, (req, res, next) => {
-  const newIdea = addToDatabase("ideas", req.body);
-  res.status(201).send(newIdea);
-});
+ideasRouter.post(
+  "/",
+  ideaValidation,
+  checkMillionDollarIdea,
+  (req, res, next) => {
+    const newIdea = addToDatabase("ideas", req.body);
+    res.status(201).send(newIdea);
+  }
+);
 
 //PUT an existing idea
-ideasRouter.put("/:ideaId", ideaValidation, (req, res, next) => {
-  req.body.id = req.params.ideaId;
-  const updatedIdea = updateInstanceInDatabase("ideas", req.body);
-  if (updatedIdea) {
-    res.status(200).send(updatedIdea);
-  } else {
-    res.status(404).send({ error: "Idea not found or invalid" });
+ideasRouter.put(
+  "/:ideaId",
+  ideaValidation,
+  checkMillionDollarIdea,
+  (req, res, next) => {
+    req.body.id = req.params.ideaId;
+    const updatedIdea = updateInstanceInDatabase("ideas", req.body);
+    if (updatedIdea) {
+      res.status(200).send(updatedIdea);
+    } else {
+      res.status(404).send({ error: "Idea not found or invalid" });
+    }
   }
-});
+);
 
 //DELETE idea by ID
 ideasRouter.delete("/:ideaId", (req, res, next) => {
