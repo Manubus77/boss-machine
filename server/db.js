@@ -292,4 +292,6 @@ module.exports = {
   isValidMinion,
   isValidIdea,
   isValidMeeting,
+  createWork,
+  isValidWork,
 };

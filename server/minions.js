@@ -73,6 +73,20 @@ minionsRouter.delete("/:minionId", (req, res, next) => {
 
 //ROUTES FOR HANDLING MINIONS BACKLOGS
 
+//Middleware for checking when a work is valid or not
+const workValidation = (req, res, next) => {
+  try {
+    const work = req.body;
+    if (work.minionId && work.minionId !== String(req.minion.id)) {
+      throw new Error("minionId in body does not match URL param");
+    }
+    isValidWork(work);
+    next();
+  } catch (err) {
+    res.status(400).send({ error: err.message });
+  }
+};
+
 // GET all backlog from a minion by ID
 minionsRouter.get("/:minionId/work", (req, res, next) => {
   const minionId = req.params.minionId;
@@ -83,16 +97,50 @@ minionsRouter.get("/:minionId/work", (req, res, next) => {
 });
 
 // POST new work in backlog for a minion by ID
-minionsRouter.post("/:minionId/work", (req, res, next) => {
-  const minionId = req.params.minionId;
-  const newWork = { ...req.body, minionId };
-
-  if (!isValidWork(newWork)) {
-    return res.status(400).send({ message: "Invalid work" });
-  }
-
+minionsRouter.post("/:minionId/work", workValidation, (req, res, next) => {
+  const newWork = { ...req.body, minionId: req.minion.id };
   const addedWork = addToDatabase("work", newWork);
   res.status(201).send(addedWork);
+});
+
+// PUT existing work in backlog for a minion by ID
+minionsRouter.put(
+  "/:minionId/work/:workId",
+  workValidation,
+  (req, res, next) => {
+    const { minionId, workId } = req.params;
+    const existingWork = getFromDatabaseById("work", workId);
+
+    if (!existingWork || existingWork.minionId !== minionId) {
+      return res.status(404).send({ error: "Work not found for this minion" });
+    }
+
+    const updatedWork = { ...req.body, id: workId, minionId };
+    const result = updateInstanceInDatabase("work", updatedWork);
+
+    if (result) {
+      res.status(200).send(result);
+    } else {
+      res.status(400).send({ error: "Invalid update data" });
+    }
+  }
+);
+
+// DELETE a single work in backlog for a minion by ID
+minionsRouter.delete("/:minionId/work/:workId", (req, res, next) => {
+  const { minionId, workId } = req.params;
+  const work = getFromDatabaseById("work", workId);
+
+  if (!work || work.minionId !== minionId) {
+    return res.status(404).send({ error: "Work not found for this minion" });
+  }
+
+  const deleted = deleteFromDatabasebyId("work", workId);
+  if (deleted) {
+    res.status(204).send();
+  } else {
+    res.status(500).send({ error: "Failed to delete work" });
+  }
 });
 
 module.exports = minionsRouter;
